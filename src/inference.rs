@@ -55,6 +55,10 @@ pub enum ExecutionMode {
     Cuda,
     /// NVIDIA GPU with concurrent fused seg+emb and ~2s step
     CudaFast,
+    /// WebGPU via ONNX Runtime (cross-platform, experimental)
+    WebGpu,
+    /// WebGPU with ~2s step for better throughput
+    WebGpuFast,
 }
 
 impl ExecutionMode {
@@ -89,6 +93,20 @@ impl ExecutionMode {
                     })
                 }
             }
+            Self::WebGpu | Self::WebGpuFast => {
+                #[cfg(feature = "webgpu")]
+                {
+                    Ok(())
+                }
+
+                #[cfg(not(feature = "webgpu"))]
+                {
+                    Err(ExecutionModeError {
+                        mode: self,
+                        feature: "webgpu",
+                    })
+                }
+            }
         }
     }
 
@@ -100,6 +118,8 @@ impl ExecutionMode {
             Self::CoreMlFast => "coreml-fast",
             Self::Cuda => "cuda",
             Self::CudaFast => "cuda-fast",
+            Self::WebGpu => "webgpu",
+            Self::WebGpuFast => "webgpu-fast",
         }
     }
 }
@@ -229,6 +249,17 @@ pub fn with_execution_mode(
             #[cfg(not(feature = "cuda"))]
             {
                 unreachable!("mode validation rejects CUDA modes without the `cuda` feature")
+            }
+        }
+        ExecutionMode::WebGpu | ExecutionMode::WebGpuFast => {
+            #[cfg(feature = "webgpu")]
+            {
+                Ok(builder.with_execution_providers([ep::WebGPU::default().build()])?)
+            }
+
+            #[cfg(not(feature = "webgpu"))]
+            {
+                unreachable!("mode validation rejects WebGPU modes without the `webgpu` feature")
             }
         }
     }
@@ -434,6 +465,31 @@ mod tests {
             error.to_string(),
             "cuda-fast requires the `cuda` Cargo feature"
         );
+    }
+
+    #[cfg(not(feature = "webgpu"))]
+    #[test]
+    fn webgpu_modes_require_feature() {
+        let error = ExecutionMode::WebGpu.validate().unwrap_err();
+        assert_eq!(error.to_string(), "webgpu requires the `webgpu` Cargo feature");
+
+        let error = ExecutionMode::WebGpuFast.validate().unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "webgpu-fast requires the `webgpu` Cargo feature"
+        );
+    }
+
+    #[test]
+    fn execution_mode_as_str_returns_correct_values() {
+        use super::ExecutionMode;
+        assert_eq!(ExecutionMode::Cpu.as_str(), "cpu");
+        assert_eq!(ExecutionMode::CoreMl.as_str(), "coreml");
+        assert_eq!(ExecutionMode::CoreMlFast.as_str(), "coreml-fast");
+        assert_eq!(ExecutionMode::Cuda.as_str(), "cuda");
+        assert_eq!(ExecutionMode::CudaFast.as_str(), "cuda-fast");
+        assert_eq!(ExecutionMode::WebGpu.as_str(), "webgpu");
+        assert_eq!(ExecutionMode::WebGpuFast.as_str(), "webgpu-fast");
     }
 
     #[cfg(all(feature = "load-dynamic", not(target_arch = "wasm32")))]

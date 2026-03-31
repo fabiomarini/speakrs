@@ -97,10 +97,12 @@ impl Default for RuntimeConfig {
 /// Segmentation step size in seconds for the selected execution mode
 pub const fn segmentation_step_seconds(mode: ExecutionMode) -> f64 {
     match mode {
-        ExecutionMode::CoreMlFast | ExecutionMode::CudaFast => FAST_SEGMENTATION_STEP_SECONDS,
+        ExecutionMode::CoreMlFast | ExecutionMode::CudaFast | ExecutionMode::WebGpuFast => {
+            FAST_SEGMENTATION_STEP_SECONDS
+        }
         ExecutionMode::CoreMl => COREML_SEGMENTATION_STEP_SECONDS,
         ExecutionMode::Cuda => CUDA_SEGMENTATION_STEP_SECONDS,
-        ExecutionMode::Cpu => SEGMENTATION_STEP_SECONDS,
+        ExecutionMode::WebGpu | ExecutionMode::Cpu => SEGMENTATION_STEP_SECONDS,
     }
 }
 

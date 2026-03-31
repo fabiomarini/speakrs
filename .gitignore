@@ -12,3 +12,8 @@ fixtures/datasets/
 .envrc
 /scripts/speakerkit-bench/Packages
 scripts/speakerkit-bench/Package.resolved
+AGENTS.md
+CLAUDE.md
+.claude
+.agents
+.idea

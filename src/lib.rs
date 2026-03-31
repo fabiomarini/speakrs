@@ -13,13 +13,16 @@
 //!
 //! ```toml
 //! # Apple Silicon (CoreML)
-//! speakrs = { version = "0.2", features = ["coreml"] }
+//! speakrs = { version = "0.3", features = ["coreml"] }
 //!
 //! # NVIDIA GPU
-//! speakrs = { version = "0.2", features = ["cuda"] }
+//! speakrs = { version = "0.3", features = ["cuda"] }
+//!
+//! # WebGPU (cross-platform, experimental)
+//! speakrs = { version = "0.3", features = ["webgpu"] }
 //!
 //! # CPU only (default)
-//! speakrs = "0.2"
+//! speakrs = "0.3"
 //! ```
 //!
 //! ## Quick start
@@ -185,10 +188,11 @@
 //! See [benchmarks/](https://github.com/avencera/speakrs/tree/master/benchmarks) for
 //! full results across all datasets.
 //!
-//! # CPU & CUDA (Linux, Windows, macOS)
+//! # CPU, CUDA, and WebGPU (Linux, Windows, macOS)
 //!
 //! Works on any platform with ONNX Runtime. No special Cargo features needed for CPU.
-//! Enable the `cuda` feature for NVIDIA GPU acceleration.
+//! Enable the `cuda` feature for NVIDIA GPU acceleration, or `webgpu` for cross-platform
+//! WebGPU acceleration.
 //!
 //! ## Execution modes
 //!
@@ -197,6 +201,22 @@
 //! | `cpu` | ORT CPU | 1s | FP32 | Reference |
 //! | `cuda` | ORT CUDA | 1s | FP32 | Best accuracy |
 //! | `cuda-fast` | ORT CUDA | 2s | FP32 | Best speed |
+//! | `webgpu` | ORT WebGPU | 1s | FP32 | Cross-platform (experimental) |
+//! | `webgpu-fast` | ORT WebGPU | 2s | FP32 | Cross-platform throughput (experimental) |
+//!
+//! ## WebGPU
+//!
+//! WebGPU provides hardware acceleration on any platform with a WebGPU-compatible GPU:
+//! - **Windows**: DirectX 11/12
+//! - **Linux**: Vulkan, OpenGL/GLES
+//! - **macOS**: Metal
+//!
+//! Requires the `webgpu` Cargo feature. Note that WebGPU binaries are mutually exclusive
+//! with CUDA in prebuilt builds. If you need both CUDA and WebGPU support, compile ONNX
+//! Runtime from source.
+//!
+//! **Warning**: The WebGPU execution provider is experimental and may produce incorrect
+//! results or crashes. Report issues upstream to the ONNX Runtime project.
 //!
 //! ## Benchmarks
 //!
@@ -276,6 +296,7 @@
 //! - **`online`** (default) — automatic model download from HuggingFace via [`ModelManager`]
 //! - **`coreml`** — native CoreML backend for Apple Silicon GPU/ANE acceleration
 //! - **`cuda`** — NVIDIA CUDA backend via ONNX Runtime
+//! - **`webgpu`** — cross-platform WebGPU backend via ONNX Runtime (experimental)
 //! - **`load-dynamic`** — load the CUDA runtime library at startup instead of static linking
 //!
 //! # Build requirements
